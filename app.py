@@ -9,7 +9,7 @@ st.markdown("<p style='text-align: center;'>Expert astrologer GPT that needs you
 
 col1, col2, col3 = st.columns([1,1,1])
 with col2:
-st.image("https://www.pngegg.com/en/png-tdfzd", width=100)
+    st.image("assets/logo.png", width=100)
 st.markdown("---")
 
 # Predefined button layout (mimicking your image)
