@@ -1,52 +1,53 @@
 import streamlit as st
-from astro_api import *
-from utils import detect_sign_from_date
+from astro_api import get_daily_horoscope, get_birth_chart
+from utils import predefined_questions, get_answer
 
-st.set_page_config(page_title="Astrology Birth Chart GPT", layout="centered")
+# Page config
+st.set_page_config(page_title="Astrology Birth Chart GPT", page_icon="🔮", layout="centered")
 
-st.markdown("<h1 style='text-align: center;'>🔮 Astrology Birth Chart GPT</h1>", unsafe_allow_html=True)
+# Main title
+st.markdown("<h1 style='text-align: center;'>Astrology Birth Chart GPT</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>Expert astrologer GPT that needs your birth info to answer queries.</p>", unsafe_allow_html=True)
 
-col1, col2, col3 = st.columns([1,1,1])
-with col2:
-    st.image("assets/logo.png", width=100)
-st.markdown("---")
-
-# Predefined button layout (mimicking your image)
-col1, col2 = st.columns(2)
-with col1:
-    if st.button("What does my birth chart say about me?"):
-        st.info(get_birth_chart_placeholder("You", "YYYY-MM-DD", "HH:MM", "City"))
-
-    if st.button("Can you analyze my love life through astrology?"):
-        sign = st.selectbox("Select Zodiac Sign", zodiac_signs, key="love")
-        st.success(get_love_prediction(sign))
-
-with col2:
-    if st.button("Tell me about my career prospects astrologically."):
-        sign = st.selectbox("Select Zodiac Sign", zodiac_signs, key="career")
-        st.success(get_career_prediction(sign))
-
-    if st.button("Can you describe my main weaknesses?"):
-        sign = st.selectbox("Select Zodiac Sign", zodiac_signs, key="weakness")
-        st.success(get_weakness_analysis(sign))
+# Predefined questions
+st.markdown("### 🔮 Quick Questions")
+for question in predefined_questions:
+    if st.button(question):
+        st.session_state['user_input'] = question
 
 st.markdown("---")
 
-st.subheader("📅 Daily Horoscope")
-sign = st.selectbox("Your Zodiac Sign", zodiac_signs, key="daily")
-if st.button("🔍 Show Horoscope"):
-    st.info(get_daily_horoscope(sign))
-
-st.markdown("---")
-
-st.subheader("📜 Generate Your Birth Chart")
+# Birth info form
 with st.form("birth_form"):
+    st.markdown("### 🗓️ Enter Your Birth Details")
     name = st.text_input("Name")
-    birth_date = st.date_input("Birth Date")
-    birth_time = st.time_input("Birth Time")
+    date_of_birth = st.date_input("Date of Birth")
+    time_of_birth = st.time_input("Time of Birth")
     birth_place = st.text_input("Place of Birth")
-    submitted = st.form_submit_button("Generate")
-    if submitted:
-        result = get_birth_chart_placeholder(name, birth_date, birth_time, birth_place)
-        st.success(result)
+    zodiac_sign = st.selectbox("Your Zodiac Sign", [
+        "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+    ])
+    submitted = st.form_submit_button("Submit")
+
+# Chat interface
+if submitted:
+    st.success("Birth details submitted. Ask your question below!")
+
+    if 'user_input' not in st.session_state:
+        st.session_state['user_input'] = ""
+
+    user_input = st.text_input("Ask anything", value=st.session_state['user_input'])
+    if st.button("Get Answer"):
+        if user_input:
+            with st.spinner("Analyzing your stars..."):
+                if "horoscope" in user_input.lower():
+                    result = get_daily_horoscope(zodiac_sign)
+                elif "birth chart" in user_input.lower():
+                    result = get_birth_chart(name, date_of_birth, time_of_birth, birth_place)
+                else:
+                    result = get_answer(user_input, zodiac_sign)
+            st.markdown("### 📝 Answer:")
+            st.write(result)
+        else:
+            st.warning("Please enter a question.")
